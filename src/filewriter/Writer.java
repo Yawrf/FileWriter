@@ -83,13 +83,19 @@ public class Writer {
         return output;
     }
     
+    /**
+     * Do not include ".txt" at end of filename
+     * @param name
+     * @return 
+     */
     public boolean deleteFile(String name) {
-        File file = new File(filepath+name);
+        File file = new File(filepath+name+".txt");
         return file.delete();
     }
     
     public ArrayList<String> listFiles() {
         File path = new File(filepath);
+        path.mkdirs();
         ArrayList<String> output = new ArrayList<>();
         for(String s : path.list()) {
             String t = s.replace(".txt", "");
