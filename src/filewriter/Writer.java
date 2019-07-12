@@ -21,12 +21,22 @@ import java.util.ArrayList;
  */
 public class Writer {
     
-    private String filepath = "/Program Files/Yawrf/";
+    private String baseFilepath = "/Program Files/Yawrf/";
+    private String filepath = "";
+    private ArrayList<String> extensions = new ArrayList<>();
     
     public Writer(String folder) {
-        filepath += folder + "/";
+        baseFilepath += folder + "/";
+        buildFilepath();
     }
     
+    
+    /**
+     * Do Not include ".txt" at end of filename
+     * @param object
+     * @param name
+     * @return 
+     */
     public boolean writeObject(Serializable object, String name) {
         
         try {
@@ -93,13 +103,81 @@ public class Writer {
         return file.delete();
     }
     
+    public boolean deleteFolder(String name) {
+        File[] contents = new File(filepath + name).listFiles();
+        if(contents != null) {
+            for(File f : contents) {
+                deleteFolder(f);
+            }
+        }
+        File f = new File(filepath+name);
+        return f.delete();
+    }
+    
+    private boolean deleteFolder(File f) {
+        File[] contents = f.listFiles();
+        if(contents != null) {
+            for(File g : contents) {
+                deleteFolder(g);
+            }
+        }
+        return f.delete();
+    }
+    
+    public boolean renameFolder(String folderName, String newName) {
+        File f = new File(filepath+folderName);
+        return f.renameTo(new File(filepath+newName));
+    }
+    
+    /**
+     * Adds a given String 's' to the end of the filepath
+     * Automatically includes '/', do not include
+     * 
+     * Example: .../Yawrf to .../Yawrf/Example
+     * @param s 
+     */
+    public void moveDownFolder(String s) {
+        if(!s.equals("")) {
+            extensions.add(s);
+            buildFilepath();
+        }
+    }
+    
+    /**
+     * Moves up one folder
+     * 
+     * Example: .../Yawrf/Example to .../Yawrf
+     */
+    public void moveUpFolder() {
+        extensions.remove(extensions.size() - 1);
+        buildFilepath();
+    }
+    
+    public void buildFilepath() {
+        filepath = baseFilepath;
+        for(String s : extensions) {
+            filepath += s + "/";
+        }
+    }
+    
+    public void resetFilepath() {
+        extensions.clear();
+        buildFilepath();
+    }
+    
+    public String getFilepath() {
+        return filepath;
+    }
+    
     public ArrayList<String> listFiles() {
         File path = new File(filepath);
         path.mkdirs();
         ArrayList<String> output = new ArrayList<>();
         for(String s : path.list()) {
-            String t = s.replace(".txt", "");
-            output.add(t);
+            if(s.contains(".txt")) {
+                String t = s.replace(".txt", "");
+                output.add(t);
+            }
         }
         return output;
     }
