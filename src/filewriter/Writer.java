@@ -5,6 +5,7 @@
  */
 package filewriter;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -13,6 +14,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /**
@@ -21,18 +24,25 @@ import java.util.ArrayList;
  */
 public class Writer {
     
-    private String baseFilepath = "/Program Files/Yawrf/";
+    private String baseFilepath = "/Yawrf/";
     private String filepath = "";
     private ArrayList<String> extensions = new ArrayList<>();
     
+    public Writer(String directory, String folder) {
+        this(folder);
+        changeDirectory(directory);
+    }
     public Writer(String folder) {
         baseFilepath += folder + "/";
         buildFilepath();
+        
+        System.out.println("\n>> The FileWriter Library has recently been updated; previous saves made using this will no longer be usable with it.");
+        System.out.println(  ">> To make previous files saved under this library retrievable, simply move the folder (usually /Yawrf/) out of Program Files and into the primary directory (usually C:/)\n");
     }
     
     
     /**
-     * Do Not include ".txt" at end of filename
+     * Do not include ".txt" at end of filename
      * @param object
      * @param name
      * @return 
@@ -43,6 +53,7 @@ public class Writer {
             File file = new File(filepath);
             file.mkdirs();
             file = new File(filepath+name+".txt");
+//            file.createNewFile();
             FileOutputStream f = new FileOutputStream(file);
             ObjectOutputStream o = new ObjectOutputStream(f);
             
@@ -56,6 +67,10 @@ public class Writer {
             return false;
         } catch(IOException e) {
             System.out.println("Error Initializing Stream - Write");
+            e.printStackTrace();
+            return false;
+        } catch(Exception e) {
+            e.printStackTrace();
             return false;
         }
         
@@ -81,15 +96,80 @@ public class Writer {
             
         } catch(FileNotFoundException e) {
             System.out.println("File Not Found - Read");
+            e.printStackTrace();
             return null;
         } catch(IOException e) {
             System.out.println("Error Initializing Stream - Read");
+            e.printStackTrace();
             return null;
         } catch(ClassNotFoundException e) {
             System.out.println("Class Not Found - Read");
+            e.printStackTrace();
+            return null;
+        } catch(Exception e) {
+            e.printStackTrace();
             return null;
         }
         
+        return output;
+    }
+    
+    /**
+     * Do not include ".txt" at end of filename
+     * @param text
+     * @param name
+     * @return 
+     */
+    public boolean writeTextFile(String text, String name) {
+        try {
+            Files.createDirectories(Paths.get(filepath));
+            
+            java.io.FileWriter fw = new java.io.FileWriter(filepath+name+".txt");
+            BufferedWriter bw = new BufferedWriter(fw);
+            
+            bw.write(text);
+            bw.flush();
+            
+            bw.close();
+        } catch (IOException e) {
+            System.out.println("Error Initializing Stream - WriteText");
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+    
+    /**
+     * Do not include ".txt" nat end of filename
+     * @param name
+     * @return 
+     */
+    public String readTextFile(String name) {
+        String output = "";
+        try {
+            File file = new File(filepath + name + ".txt");
+            FileInputStream f = new FileInputStream(file);
+            
+            for(String s : Files.readAllLines(file.toPath())) {
+                output += s + '\n';
+            }
+            
+            f.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("File Not Found - ReadText");
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            System.out.println("Error Initializing Stream - ReadText");
+            e.printStackTrace();
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
         return output;
     }
     
@@ -167,6 +247,17 @@ public class Writer {
     
     public String getFilepath() {
         return filepath;
+    }
+    
+    /**
+     * Changes filepath to '/Program Files/<dir>'
+     * @param dir 
+     */
+    public void changeDirectory(String dir) {
+        baseFilepath = baseFilepath.substring(0, baseFilepath.lastIndexOf('/'));
+        baseFilepath = baseFilepath.substring(baseFilepath.lastIndexOf('/'));
+        baseFilepath = "/" + dir + baseFilepath + "/";
+        buildFilepath();
     }
     
     public ArrayList<String> listFiles() {
